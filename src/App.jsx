@@ -5,7 +5,8 @@ import Dashboard from "./component/Dashboard";
 import Transaction from "./component/Transaction";
 import Report from "./component/Report";
 import LoginPage from "./component/Login";
-import PrivateRoute from "./component/PrivateRoute"; // Import PrivateRoute component
+import PrivateRoute from "./component/PrivateRoute"; 
+import BudgetManagement from "./component/BudgetManagement";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -44,6 +45,16 @@ function App() {
             </PrivateRoute>
           }
         />
+
+        <Route
+          path="/BudgetManagement"
+          element={
+            <PrivateRoute>
+              <BudgetManagement />
+            </PrivateRoute>
+          }
+        />
+
         <Route
           path="/Report"
           element={

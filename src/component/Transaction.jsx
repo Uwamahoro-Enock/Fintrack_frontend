@@ -20,12 +20,20 @@ const Transaction = () => {
 
   const handleAddRecord = async () => {
     try {
-      console.log("Data to be sent:", transaction);
       const response = await axios.post(
         "http://localhost:5000/api/transactions",
         transaction
       );
       alert(response.data.message);
+
+      setTransaction({
+    type: "",
+    accountType: "",
+    amount: "",
+    category: "",
+    subcategory: "",
+    description: "",
+    })
     } catch (error) {
       console.log(error);
       alert("Failed to add transaction");

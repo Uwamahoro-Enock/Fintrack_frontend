@@ -18,13 +18,11 @@ const LoginPage = ({ onLoginSuccess }) => {
     e.preventDefault();
     setError('');
 
-    // Basic validation
     if (!email || !password) {
       setError('Please fill in all fields');
       return;
     }
 
-    // Check credentials (this would be an API call in a real application)
     if (email === mockCredentials.email && password === mockCredentials.password) {
       onLoginSuccess({ token: "mockToken123", user: { email } });
     } else {
@@ -91,7 +89,7 @@ const LoginPage = ({ onLoginSuccess }) => {
 
           <div>
             <button
-              onClick={()=> navigate('Dashboard')}
+              onClick={()=> navigate('/Dashboard')}
               type="submit"
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
             >
