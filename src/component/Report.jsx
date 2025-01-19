@@ -16,7 +16,11 @@ const Report = () => {
   const fetchTransactions = async () => {
     try {
       const response = await axios.get("http://localhost:5000/api/transactions");
-      setTransactions(response.data);
+      const processedTransactions = response.data.map(tx => ({
+        ...tx,
+        type: tx.type || "Cash Out"
+      }));
+      setTransactions(processedTransactions);
     } catch (error) {
       console.error("Error fetching transactions:", error);
     }
@@ -47,13 +51,11 @@ const Report = () => {
   const generateReport = () => {
     const { start, end } = calculateDateRange();
     
-    // Filter transactions within the date range
     const filteredTransactions = transactions.filter(tx => {
       const txDate = new Date(tx.date);
       return txDate >= start && txDate <= end;
     });
 
-    // Calculate summaries
     const summaryData = {
       totalCashIn: 0,
       totalCashOut: 0,
@@ -62,32 +64,26 @@ const Report = () => {
       transactions: filteredTransactions,
     };
 
-    // Process transactions
     filteredTransactions.forEach(tx => {
-      // Track by transaction type
       if (tx.type === "Cash In") {
-        summaryData.totalCashIn += tx.amount;
-      } else if (tx.type === "Cash Out") {
-        summaryData.totalCashOut += tx.amount;
+        summaryData.totalCashIn += Number(tx.amount);
+      } else {
+        summaryData.totalCashOut += Number(tx.amount);
       }
 
-      // Track by category
       if (!summaryData.byCategory[tx.category]) {
         summaryData.byCategory[tx.category] = 0;
       }
-      summaryData.byCategory[tx.category] += tx.amount;
+      summaryData.byCategory[tx.category] += Number(tx.amount);
 
-      // Track by account type
       if (!summaryData.byAccount[tx.accountType]) {
         summaryData.byAccount[tx.accountType] = 0;
       }
-      summaryData.byAccount[tx.accountType] += tx.amount;
+      summaryData.byAccount[tx.accountType] += Number(tx.amount);
     });
 
-    // Calculate net balance
     summaryData.netBalance = summaryData.totalCashIn - summaryData.totalCashOut;
 
-    // Prepare data for charts
     const categoryData = Object.entries(summaryData.byCategory).map(([name, value]) => ({
       name,
       amount: value

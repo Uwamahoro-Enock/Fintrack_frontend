@@ -5,7 +5,7 @@ const Transaction = () => {
   const [viewFetched, setViewFetched] = useState(false); 
   const [fetchedData, setFetchedData] = useState([]);
   const [transaction, setTransaction] = useState({
-    type: "",
+    type: "Cash Out", // Set default value
     accountType: "",
     amount: "",
     category: "",
@@ -19,21 +19,28 @@ const Transaction = () => {
   };
 
   const handleAddRecord = async () => {
+    // Ensure type is never empty before sending
+    const transactionToSend = {
+      ...transaction,
+      type: transaction.type || "Cash Out" // Fallback if somehow empty
+    };
+
     try {
       const response = await axios.post(
         "http://localhost:5000/api/transactions",
-        transaction
+        transactionToSend
       );
       alert(response.data.message);
 
+      // Reset form with default type
       setTransaction({
-    type: "",
-    accountType: "",
-    amount: "",
-    category: "",
-    subcategory: "",
-    description: "",
-    })
+        type: "Cash Out", // Keep default value when resetting
+        accountType: "",
+        amount: "",
+        category: "",
+        subcategory: "",
+        description: "",
+      });
     } catch (error) {
       console.log(error);
       alert("Failed to add transaction");
@@ -41,11 +48,14 @@ const Transaction = () => {
   };
 
   const handleFetchRecords = async () => {
-    console.log('Fetching data');
     try {
       const response = await axios.get("http://localhost:5000/api/transactions");
-      console.log(response.data);
-      setFetchedData(response.data);
+      // Ensure each fetched item has a type
+      const processedData = response.data.map(item => ({
+        ...item,
+        type: item.type || "Cash Out" // Fallback for display if type is missing
+      }));
+      setFetchedData(processedData);
       setViewFetched(true);
     } catch (error) {
       console.log(error);
@@ -67,12 +77,14 @@ const Transaction = () => {
               value={transaction.type}
               onChange={handleInputChange}
               className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
             >
               <option value="Cash In">Cash In</option>
               <option value="Cash Out">Cash Out</option>
             </select>
           </div>
 
+          {/* Rest of the form remains the same */}
           {/* Account Type */}
           <div className="mb-4">
             <label className="block text-gray-700 font-semibold mb-2">Account Type</label>
@@ -81,7 +93,9 @@ const Transaction = () => {
               value={transaction.accountType}
               onChange={handleInputChange}
               className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
             >
+              <option value="">Select Account Type</option>
               <option value="Bank">Bank</option>
               <option value="Cash">Cash</option>
               <option value="Mobile Money">Mobile Money</option>
@@ -98,6 +112,7 @@ const Transaction = () => {
               onChange={handleInputChange}
               placeholder="Enter amount"
               className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
             />
           </div>
 
@@ -111,6 +126,7 @@ const Transaction = () => {
               onChange={handleInputChange}
               placeholder="Enter category"
               className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
             />
           </div>
 
@@ -137,6 +153,7 @@ const Transaction = () => {
               placeholder="Enter description"
               rows="3"
               className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
             ></textarea>
           </div>
 
@@ -169,7 +186,7 @@ const Transaction = () => {
           <ul className="space-y-4">
             {fetchedData.map((item) => (
               <li
-                key={item.id}
+                key={item._id}
                 className="p-4 border border-gray-300 rounded-lg"
               >
                 <p><strong>Type:</strong> {item.type}</p>
