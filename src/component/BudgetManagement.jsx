@@ -298,16 +298,6 @@ const BudgetManagement = () => {
                 ></div>
               </div>
 
-              {/* Budget Controls */}
-              {!budget.budgetSet && (
-                <button
-                  onClick={() => handleSetBudget(budget._id)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                >
-                  Set Budget
-                </button>
-              )}
-
               {editingBudget === budget._id ? (
                 <div className="space-y-2">
                   <input
