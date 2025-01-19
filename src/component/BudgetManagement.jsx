@@ -12,17 +12,96 @@ const BudgetManagement = () => {
   const [notifications, setNotifications] = useState([]);
   const [editingBudget, setEditingBudget] = useState(null);
   const [updateAmount, setUpdateAmount] = useState("");
+  const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
-    fetchBudgets();
-    const interval = setInterval(checkBudgetStatus, 3600000);
+    const fetchData = async () => {
+      await fetchBudgets();
+      await fetchTransactions();
+      checkBudgetStatus();
+    }
+    fetchData();
+    
+    const interval = setInterval(() => {
+      fetchTransactions();
+      checkBudgetStatus();
+    }, 10000);
     return () => clearInterval(interval);
   }, []);
+
+  const fetchTransactions = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/transactions");
+      setTransactions(response.data);
+      updateSpentAmounts(response.data);
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+    }
+  };
+
+  const updateSpentAmounts = (transactions) => {
+    const spentByCategory = {};
+    
+    // Calculate total spent for each category
+    transactions.forEach(transaction => {
+      if (transaction.type === "Cash Out") {
+        if (!spentByCategory[transaction.category]) {
+          spentByCategory[transaction.category] = 0;
+        }
+        spentByCategory[transaction.category] += parseFloat(transaction.amount);
+      }
+    });
+
+    // Update budgets while preserving other properties
+    setBudgets(prevBudgets => 
+      prevBudgets.map(budget => {
+        const spent = spentByCategory[budget.category] || 0;
+        const balance = budget.amount - spent;
+        
+        // Only show alert if newly exceeded
+        const shouldShowAlert = spent > budget.amount && !budget.alertShown;
+        if (shouldShowAlert) {
+          showBudgetAlert(budget.category, spent, budget.amount);
+        }
+        
+        return {
+          ...budget,
+          spent,
+          balance,
+          alertShown: spent > budget.amount
+        };
+      })
+    );
+  };
+
+  const showBudgetAlert = (category, spent, budget) => {
+    const alert = {
+      id: Date.now(),
+      message: `Budget exceeded for ${category}! Spent: RWF ${spent.toLocaleString()} of RWF ${budget.toLocaleString()}`,
+      type: "warning"
+    };
+    setNotifications(prev => [...prev, alert]);
+
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== alert.id));
+    }, 5000);
+  };
 
   const fetchBudgets = async () => {
     try {
       const response = await axios.get("http://localhost:5000/api/budgets");
-      setBudgets(response.data);
+      // Preserve spent and balance values when updating budgets
+      setBudgets(prevBudgets => {
+        return response.data.map(newBudget => {
+          const existingBudget = prevBudgets.find(b => b._id === newBudget._id);
+          return {
+            ...newBudget,
+            spent: existingBudget?.spent || 0,
+            balance: existingBudget?.balance || newBudget.amount,
+            alertShown: existingBudget?.alertShown || false
+          };
+        });
+      });
     } catch (error) {
       console.error("Error fetching budgets:", error);
     }
@@ -41,7 +120,8 @@ const BudgetManagement = () => {
     e.preventDefault();
     try {
       await axios.post("http://localhost:5000/api/budgets", newBudget);
-      fetchBudgets();
+      await fetchBudgets();
+      await fetchTransactions();
       setNewBudget({ category: "", amount: "", period: "monthly" });
     } catch (error) {
       console.error("Error creating budget:", error);
@@ -53,7 +133,8 @@ const BudgetManagement = () => {
       await axios.put(`http://localhost:5000/api/budgets/${id}`, {
         amount: updateAmount,
       });
-      fetchBudgets();
+      await fetchBudgets();
+      await fetchTransactions();
       setEditingBudget(null);
       setUpdateAmount("");
     } catch (error) {
@@ -68,7 +149,8 @@ const BudgetManagement = () => {
         await axios.put(`http://localhost:5000/api/budgets/${id}`, {
           budgetSet: true,
         });
-        fetchBudgets();
+        await fetchBudgets();
+        await fetchTransactions();
       }
     } catch (error) {
       console.error("Error setting budget:", error);
@@ -78,6 +160,22 @@ const BudgetManagement = () => {
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">
       <h1 className="text-3xl font-bold text-gray-800 mb-8">Budget Management</h1>
+
+      {/* Custom Notifications */}
+      <div className="fixed top-4 right-4 z-50 space-y-2">
+        {notifications.map((notification) => (
+          <div
+            key={notification.id}
+            className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative shadow-md"
+            role="alert"
+          >
+            <div className="flex items-center">
+              <AlertCircle className="h-4 w-4 mr-2" />
+              <span className="block sm:inline">{notification.message}</span>
+            </div>
+          </div>
+        ))}
+      </div>
 
       {/* Budget Form */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
@@ -164,7 +262,22 @@ const BudgetManagement = () => {
                   {new Intl.NumberFormat("rw-RW", {
                     style: "currency",
                     currency: "RWF",
-                  }).format(budget.spent)}
+                  }).format(budget.spent || 0)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>Balance:</span>
+                <span
+                  className={`font-semibold ${
+                    (budget.balance || 0) < 0
+                      ? "text-red-600"
+                      : "text-green-600"
+                  }`}
+                >
+                  {new Intl.NumberFormat("rw-RW", {
+                    style: "currency",
+                    currency: "RWF",
+                  }).format(budget.balance || 0)}
                 </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2.5">
@@ -178,14 +291,14 @@ const BudgetManagement = () => {
                   }`}
                   style={{
                     width: `${Math.min(
-                      (budget.spent / budget.amount) * 100,
+                      ((budget.spent || 0) / budget.amount) * 100,
                       100
                     )}%`,
                   }}
                 ></div>
               </div>
 
-              {/* Set Budget Button */}
+              {/* Budget Controls */}
               {!budget.budgetSet && (
                 <button
                   onClick={() => handleSetBudget(budget._id)}
@@ -195,7 +308,6 @@ const BudgetManagement = () => {
                 </button>
               )}
 
-              {/* Update Budget */}
               {editingBudget === budget._id ? (
                 <div className="space-y-2">
                   <input
