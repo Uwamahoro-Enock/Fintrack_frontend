@@ -15,7 +15,7 @@ const Report = () => {
 
   const fetchTransactions = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/transactions");
+      const response = await axios.get("https://fintrack-backend-15ro.onrender.com/api/transactions");
       const processedTransactions = response.data.map(tx => ({
         ...tx,
         type: tx.type || "Cash Out"
