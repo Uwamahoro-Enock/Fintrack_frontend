@@ -31,7 +31,7 @@ const BudgetManagement = () => {
 
   const fetchTransactions = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/transactions");
+      const response = await axios.get("https://fintrack-backend-15ro.onrender.com/api/transactions");
       setTransactions(response.data);
       updateSpentAmounts(response.data);
     } catch (error) {
@@ -89,7 +89,7 @@ const BudgetManagement = () => {
 
   const fetchBudgets = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/budgets");
+      const response = await axios.get("https://fintrack-backend-15ro.onrender.com/api/budgets");
       // Preserve spent and balance values when updating budgets
       setBudgets(prevBudgets => {
         return response.data.map(newBudget => {
@@ -109,7 +109,7 @@ const BudgetManagement = () => {
 
   const checkBudgetStatus = async () => {
     try {
-      await axios.post("http://localhost:5000/api/budgets/check-status");
+      await axios.post("https://fintrack-backend-15ro.onrender.com/api/budgets/check-status");
       fetchBudgets();
     } catch (error) {
       console.error("Error checking budget status:", error);
@@ -119,7 +119,7 @@ const BudgetManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/api/budgets", newBudget);
+      await axios.post("https://fintrack-backend-15ro.onrender.com/api/budgets", newBudget);
       await fetchBudgets();
       await fetchTransactions();
       setNewBudget({ category: "", amount: "", period: "monthly" });
@@ -130,7 +130,7 @@ const BudgetManagement = () => {
 
   const handleUpdateBudget = async (id) => {
     try {
-      await axios.put(`http://localhost:5000/api/budgets/${id}`, {
+      await axios.put(`https://fintrack-backend-15ro.onrender.com/api/budgets/${id}`, {
         amount: updateAmount,
       });
       await fetchBudgets();
@@ -146,7 +146,7 @@ const BudgetManagement = () => {
     try {
       const budget = budgets.find((b) => b._id === id);
       if (budget) {
-        await axios.put(`http://localhost:5000/api/budgets/${id}`, {
+        await axios.put(`https://fintrack-backend-15ro.onrender.com/api/budgets/${id}`, {
           budgetSet: true,
         });
         await fetchBudgets();
