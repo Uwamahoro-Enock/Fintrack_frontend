@@ -27,7 +27,7 @@ const Transaction = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/transactions",
+        "https://fintrack-backend-15ro.onrender.com/api/transactions",
         transactionToSend
       );
       alert(response.data.message);
