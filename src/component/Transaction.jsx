@@ -36,7 +36,7 @@ const Transaction = () => {
     };
 
     try {
-      const response = await axios.get(
+      const response = await axios.post(
         "https://fintrack-backend-15ro.onrender.com/api/transactions",
         {
           headers: {
