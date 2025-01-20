@@ -39,12 +39,7 @@ const Transaction = () => {
       console.log(transactionToSend)
       const response = await axios.post(
         "https://fintrack-backend-15ro.onrender.com/api/transactions",
-        {
-          transactionToSend,
-          headers: {
-            'Accept': 'application/json'
-          }
-        }
+        transactionToSend 
       );
       alert(response.data.message);
 
