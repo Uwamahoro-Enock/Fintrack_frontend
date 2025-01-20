@@ -49,7 +49,7 @@ const Transaction = () => {
 
   const handleFetchRecords = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/transactions");
+      const response = await axios.get("https://fintrack-backend-15ro.onrender.com/api/transactions");
       // Ensure each fetched item has a type
       const processedData = response.data.map(item => ({
         ...item,
