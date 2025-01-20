@@ -4,6 +4,8 @@ import axios from 'axios';
 const Transaction = () => {
   const [viewFetched, setViewFetched] = useState(false); 
   const [fetchedData, setFetchedData] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [transaction, setTransaction] = useState({
     type: "Cash Out", // Set default value
     accountType: "",
@@ -18,17 +20,32 @@ const Transaction = () => {
     setTransaction({...transaction, [name]: value});
   };
 
-  const handleAddRecord = async () => {
+  const handleAddRecord = async (e) => {
+    e.preventDefault();
+    
+    // Basic validation
+    if (!transaction.accountType || !transaction.amount || !transaction.category || !transaction.description) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
     // Ensure type is never empty before sending
     const transactionToSend = {
       ...transaction,
       type: transaction.type || "Cash Out" // Fallback if somehow empty
     };
 
+    setIsSubmitting(true);
     try {
       const response = await axios.post(
         "https://fintrack-backend-15ro.onrender.com/api/transactions",
-        transactionToSend
+        transactionToSend,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
       );
       alert(response.data.message);
 
@@ -41,15 +58,28 @@ const Transaction = () => {
         subcategory: "",
         description: "",
       });
+      
+      // Automatically refresh the transaction list
+      handleFetchRecords();
     } catch (error) {
       console.log(error);
       alert("Failed to add transaction");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleFetchRecords = async () => {
+    setIsLoading(true);
     try {
-      const response = await axios.get("https://fintrack-backend-15ro.onrender.com/api/transactions");
+      const response = await axios.get(
+        "https://fintrack-backend-15ro.onrender.com/api/transactions",
+        {
+          headers: {
+            'Accept': 'application/json'
+          }
+        }
+      );
       // Ensure each fetched item has a type
       const processedData = response.data.map(item => ({
         ...item,
@@ -60,6 +90,8 @@ const Transaction = () => {
     } catch (error) {
       console.log(error);
       alert("Failed to fetch transactions");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -68,7 +100,7 @@ const Transaction = () => {
       {/* Left Side: Record Transaction */}
       <div className="bg-white shadow-lg rounded-lg p-6 w-1/3 h-screen overflow-y-auto">
         <h2 className="text-xl font-bold text-blue-600 mb-4">Record Transaction</h2>
-        <form>
+        <form onSubmit={handleAddRecord}>
           {/* Transaction Type */}
           <div className="mb-4">
             <label className="block text-gray-700 font-semibold mb-2">Transaction Type</label>
@@ -84,7 +116,6 @@ const Transaction = () => {
             </select>
           </div>
 
-          {/* Rest of the form remains the same */}
           {/* Account Type */}
           <div className="mb-4">
             <label className="block text-gray-700 font-semibold mb-2">Account Type</label>
@@ -160,18 +191,23 @@ const Transaction = () => {
           {/* Buttons */}
           <div className="flex justify-between mt-4">
             <button
-              onClick={handleAddRecord}
-              type="button"
-              className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-500"
+              type="submit"
+              disabled={isSubmitting}
+              className={`bg-blue-600 text-white py-2 px-4 rounded-lg ${
+                isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-500'
+              }`}
             >
-              Add Record
+              {isSubmitting ? 'Adding...' : 'Add Record'}
             </button>
             <button
               type="button"
               onClick={handleFetchRecords}
-              className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-500"
+              disabled={isLoading}
+              className={`bg-blue-600 text-white py-2 px-4 rounded-lg ${
+                isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-500'
+              }`}
             >
-              Fetch Records
+              {isLoading ? 'Loading...' : 'Fetch Records'}
             </button>
           </div>
         </form>
@@ -182,22 +218,31 @@ const Transaction = () => {
         <h2 className="text-xl font-bold text-blue-600 mb-4">
           {viewFetched ? "Fetched Transactions" : "View Transactions"}
         </h2>
-        {viewFetched ? (
-          <ul className="space-y-4">
-            {fetchedData.map((item) => (
-              <li
-                key={item._id}
-                className="p-4 border border-gray-300 rounded-lg"
-              >
-                <p><strong>Type:</strong> {item.type}</p>
-                <p><strong>Amount:</strong> {item.amount} Rwf</p>
-                <p><strong>Category:</strong> {item.category}</p>
-                <p><strong>Description:</strong> {item.description}</p>
-              </li>
-            ))}
-          </ul>
+        {isLoading ? (
+          <p className="text-center text-gray-600">Loading transactions...</p>
+        ) : viewFetched ? (
+          fetchedData.length > 0 ? (
+            <ul className="space-y-4">
+              {fetchedData.map((item) => (
+                <li
+                  key={item._id}
+                  className="p-4 border border-gray-300 rounded-lg"
+                >
+                  <p><strong>Type:</strong> {item.type}</p>
+                  <p><strong>Account Type:</strong> {item.accountType}</p>
+                  <p><strong>Amount:</strong> {item.amount} Rwf</p>
+                  <p><strong>Category:</strong> {item.category}</p>
+                  {item.subcategory && <p><strong>Subcategory:</strong> {item.subcategory}</p>}
+                  <p><strong>Description:</strong> {item.description}</p>
+                  <p className="text-sm text-gray-500"><strong>Date:</strong> {new Date(item.date).toLocaleDateString()}</p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-center text-gray-600">No transactions found.</p>
+          )
         ) : (
-          <p>Select "Fetch Records" to view transaction history.</p>
+          <p className="text-center text-gray-600">Select "Fetch Records" to view transaction history.</p>
         )}
       </div>
     </div>
