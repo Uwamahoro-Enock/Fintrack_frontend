@@ -35,14 +35,11 @@ const Transaction = () => {
       type: transaction.type || "Cash Out" // Fallback if somehow empty
     };
 
-    setIsSubmitting(true);
     try {
-      const response = await axios.post(
+      const response = await axios.get(
         "https://fintrack-backend-15ro.onrender.com/api/transactions",
-        transactionToSend,
         {
           headers: {
-            'Content-Type': 'application/json',
             'Accept': 'application/json'
           }
         }
