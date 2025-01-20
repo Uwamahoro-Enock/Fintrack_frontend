@@ -230,9 +230,6 @@ const Transaction = () => {
                   <p><strong>Type:</strong> {item.type}</p>
                   <p><strong>Account Type:</strong> {item.accountType}</p>
                   <p><strong>Amount:</strong> {item.amount} Rwf</p>
-                  <p><strong>Category:</strong> {item.category}</p>
-                  {item.subcategory && <p><strong>Subcategory:</strong> {item.subcategory}</p>}
-                  <p><strong>Description:</strong> {item.description}</p>
                   <p className="text-sm text-gray-500"><strong>Date:</strong> {new Date(item.date).toLocaleDateString()}</p>
                 </li>
               ))}
