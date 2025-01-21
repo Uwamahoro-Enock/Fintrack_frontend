@@ -27,9 +27,9 @@ const LoginPage = ({ onLoginSuccess }) => {
         password
       })
 
-      const data = await response.json();
+      const data = await response.data;
 
-      if (response.ok) {
+      if (data.success) {
         onLoginSuccess(data);
         navigate('/Dashboard');
       } else {
