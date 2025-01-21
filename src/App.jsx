@@ -1,15 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./component/Navbar";
 import Dashboard from "./component/Dashboard";
 import Transaction from "./component/Transaction";
 import Report from "./component/Report";
 import LoginPage from "./component/Login";
-import PrivateRoute from "./component/PrivateRoute"; 
+import PrivateRoute from "./component/PrivateRoute";
 import BudgetManagement from "./component/BudgetManagement";
 
 function App() {
   const [user, setUser] = useState(null);
+
+  // Check for token on initial load
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      // You can fetch user info from the token if needed, e.g., decode JWT or call an API
+      setUser({ token });
+    }
+  }, []);
 
   const handleLoginSuccess = (userInfo) => {
     setUser(userInfo);
@@ -45,7 +54,6 @@ function App() {
             </PrivateRoute>
           }
         />
-
         <Route
           path="/BudgetManagement"
           element={
@@ -54,7 +62,6 @@ function App() {
             </PrivateRoute>
           }
         />
-
         <Route
           path="/Report"
           element={
