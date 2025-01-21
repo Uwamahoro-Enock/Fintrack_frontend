@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const LoginPage = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState('');
@@ -21,13 +22,10 @@ const LoginPage = ({ onLoginSuccess }) => {
     }
 
     try {
-      const response = await fetch('https://fintrack-backend-15ro.onrender.com/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await axios.post('https://fintrack-backend-15ro.onrender.com/api/auth/login', {
+        email,
+        password
+      })
 
       const data = await response.json();
 
