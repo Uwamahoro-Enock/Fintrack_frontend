@@ -22,7 +22,7 @@ const LoginPage = ({ onLoginSuccess }) => {
     }
 
     try {
-      const response = await axios.post('https://fintrack-backend-15ro.onrender.com/api/auth/login', {
+      const response = await axios.post('https://fintrack-backend-15ro.onrender.com/api/auth', {
         email,
         password
       })
