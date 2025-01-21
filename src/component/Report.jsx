@@ -107,7 +107,7 @@ const Report = () => {
       {/* Controls */}
       <div className="bg-white shadow-lg rounded-lg p-6">
         <h2 className="text-xl font-bold text-blue-600 mb-4">Select Report Type</h2>
-        <div className="flex space-x-4 mb-4">
+        <div className="flex flex-wrap justify-start sm:space-x-4 mb-4">
           <button
             onClick={() => setSelectedReport("daily")}
             className={`py-2 px-4 rounded-lg ${
@@ -135,7 +135,7 @@ const Report = () => {
         </div>
         <button
           onClick={generateReport}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-500"
+          className="w-full sm:w-auto bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-500"
         >
           Generate Report
         </button>
@@ -147,7 +147,7 @@ const Report = () => {
           <h2 className="text-xl font-bold text-blue-600 mb-4">Financial Summary</h2>
           
           {/* Summary Cards */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             <div className="bg-green-100 p-4 rounded-lg">
               <h3 className="font-bold text-green-800">Total Cash In</h3>
               <p className="text-2xl">{formatCurrency(summary.totalCashIn)}</p>
@@ -220,3 +220,4 @@ const Report = () => {
 };
 
 export default Report;
+
