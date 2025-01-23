@@ -9,30 +9,51 @@ import PrivateRoute from "./component/PrivateRoute";
 import BudgetManagement from "./component/BudgetManagement";
 
 function App() {
-  const [user, setUser] = useState(null);
-
+const [isAuthenticated, setIsAUthenicated] = useState(false);
   // Check for token on initial load
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     if (token) {
       // You can fetch user info from the token if needed, e.g., decode JWT or call an API
-      setUser({ token });
+      verifyToken(token)
+      .then((isValid) => {
+        setIsAUthenicated(isValid);
+      })
+      .catch(()=> {
+        localStorage.removeItem("authToken");
+        setIsAUthenicated(false);
+      })
     }
   }, []);
 
   const handleLoginSuccess = (userInfo) => {
-    setUser(userInfo);
+    setIsAUthenicated(true);
     localStorage.setItem("authToken", userInfo.token); // Store the token in localStorage
   };
 
   const handleLogout = () => {
-    setUser(null);
+    setIsAUthenicated(false);
     localStorage.removeItem("authToken"); // Clear the token on logout
   };
 
+  const verifyToken = async (token) => {
+    try {
+      const response = await fetch('/api/verify-token', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      return response.ok;
+    } catch (error) {
+      return false;
+    }
+  };
+
+
   return (
     <Router>
-      {user && <Navbar user={user} onLogout={handleLogout} />}
+      {isAuthenticated && <Navbar onLogout={handleLogout} />}
       <Routes>
         {/* Public Route */}
         <Route path="/" element={<LoginPage onLoginSuccess={handleLoginSuccess} />} />
