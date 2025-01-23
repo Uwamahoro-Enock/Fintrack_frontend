@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import axios from 'axios';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 const Transaction = () => {
   const [viewFetched, setViewFetched] = useState(false); 
@@ -36,12 +39,14 @@ const Transaction = () => {
     };
 
     try {
-      console.log(transactionToSend)
       const response = await axios.post(
         "https://fintrack-backend-15ro.onrender.com/api/transactions",
         transactionToSend 
       );
-      alert(response.data.message);
+      toast.success(response.data.message, {
+        position: "top-right",
+        autoClose: 3000,
+      });
 
       // Reset form with default type
       setTransaction({
@@ -57,7 +62,10 @@ const Transaction = () => {
       handleFetchRecords();
     } catch (error) {
       console.log(error);
-      alert("Failed to add transaction");
+      toast.error("Failed to add transaction", {
+        position:"top-right",
+        autoClose: 3000,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -236,6 +244,7 @@ const Transaction = () => {
           <p className="text-center text-gray-600">Select "Fetch Records" to view transaction history.</p>
         )}
       </div>
+      <ToastContainer/>
     </div>
   );
 };
